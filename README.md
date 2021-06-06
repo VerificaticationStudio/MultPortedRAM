@@ -1,2 +1,2 @@
 # MultPortedRAM
-there kinds of multi-ported ram implemented by Chisel.
+Three kinds of multi-ported ram implemented by Chisel.
