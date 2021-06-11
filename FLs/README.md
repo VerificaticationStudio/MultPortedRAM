@@ -18,7 +18,7 @@ Theory and Tools:
 Netlist,Models and Verification scripts:
 - *.blif: netlist model of memory in Berkeley Logic Interchange Format
 - *.exlif: netlist model of memory in Extended Logic Interchange Format
-- *.exe.gz: input model for FORTE system
+- *.exe.gz: input model of FORTE system
 - lvt.fl/xor.fl/ilvt.fl : verification FL scripts
 
 
