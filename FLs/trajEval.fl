@@ -1,0 +1,114 @@
+//******************************************************************************************************************************************
+//theorem prover for STE model checking
+//
+//code by:
+//Yongjian Li, Naiju Zeng
+//State Key Lab of Computer Science, Chinese Academy of Sciences, China
+//******************************************************************************************************************************************
+
+load "lib.fl";
+
+//******************************************************************************************************************************************
+//trajectory form
+lettype trajForm = Is1 string
+                	| Is0 string
+               	| Next trajForm
+                	| Guard bexpr trajForm
+                	| TAndList (trajForm list)
+        	    	| Chaos
+;
+
+//trajectory form printing 
+letrec trajForm2Str (Is1 node) = "Is1 " ^ node
+/\	 trajForm2Str (Is0 node) = "Is0 " ^ node
+/\	 trajForm2Str (Next tfF) = "Next " ^ (trajForm2Str tfF)
+/\	 trajForm2Str (Guard b tf) = "Guard " ^ (bexpr2str 200 b ) ^ " " ^ (trajForm2Str tf)
+/\	 trajForm2Str (TAndList tfL) = "TAndList [" ^ (itlist (\tf. \str. (trajForm2Str tf) ^ "," ^ str) tfL "") ^ "]"
+/\	 trajForm2Str Chaos = "Chaos"
+;
+install_print_function trajForm2Str;
+
+
+//Isb value node
+let Isb P str = TAndList [(Guard P (Is1 str)), (Guard (bNOT P) (Is0 str))];
+
+
+//ns bvAre bls
+let bvAre ns bls=TAndList //assign the value of a line
+(map (\pair.Isb (snd pair) (fst pair) ) (zip ns bls));
+infix 6 bvAre;
+
+
+//element of array: xs[i]
+let ! xs i=el (i+1) xs; //element of a list
+infix 6 !;
+
+
+//3 with 4 bit width => [bT, bT, bF, bF]
+let ind2Addr i width= 	//binary encoding of an integer
+	(i<0 OR i>(2**width-1)) => error "out of bound"
+|
+	let intList = map (\n. (i/(2**n))%2) ((width-1) downto 0)
+in	let boolL = [bF,bT]
+in
+	let code=map (\j. (boolL ! j)) intList
+in rev code;
+
+
+//addrV = i (addrV is of symbolic value, i is of integer)
+let valIs addrV i=
+    let ADDR_SIZE = length addrV in 
+    let ivec = ind2Addr i ADDR_SIZE in
+    let terms = map2 (\a. \iv. iv=bT =>  a | bNOT a) addrV ivec in
+    itlist (\t.\pre. (t bAND pre)) terms bT
+;
+infix 6 valIs;
+
+//adr = n (adr is of circuits node, n is of integer)
+let nodeIs adr n= 
+    let size = length adr 
+    in
+	letrec tobool n size=
+		(size = 0) => []
+		| (n%2): (tobool (n/2) (size-1)) 
+    in
+	TAndList (map2 (\i.\j. (i=0) => (Is0 (el (j+1) adr)) | (Is1 (el (j+1) adr))) (tobool n size) (0 upto (size-1)))
+;
+infix 6 nodeIs;
+
+let indexIs index k= 
+    let indexSize = length index in 
+    let ivec = ind2Addr k indexSize in
+    let terms = map2 (\a. \iv. iv=bT => a | bNOT a) index ivec in
+    itlist (\t.\pre. (t bAND pre)) terms bT
+;
+infix 6 indexIs;
+
+//turn the trajectory form to five tuple list accepted by STE
+letrec trajForm2FiveTuples (Is1 n) = [(T,n,T,0,1)]
+/\  	trajForm2FiveTuples (Is0 n) = [(T,n,F,0,1)]
+/\  	trajForm2FiveTuples (TAndList TLs) = flat (map trajForm2FiveTuples TLs)
+/\  	trajForm2FiveTuples (Next TF) = 
+		let tfs1 = trajForm2FiveTuples TF 
+	in
+    		map (\tuple. val (g,n,v,s,e) = tuple in (g,n,v,s+1,e+1)) tfs1
+/\   	trajForm2FiveTuples (Guard P f) =
+    		let tfs1 = trajForm2FiveTuples f 
+	in	val ([g']) = bexpr2bdd [] [P] 
+	//in	let cvar = depends [g']
+	//in	let pvar = depends (map (\(g,n,v,s,e). g) tfs1)
+	//in	((cvar intersect pvar) = []) =>
+    	in	map  (\tuple. val (g,n,v,s,e) = tuple in ((g AND g'),n,v,s,e)) tfs1
+	//|
+	//	val (subst,_) = fparam (pvar intersect cvar) g'
+	//in	gen_substitute subst tfs1
+;
+
+// five tuples printing
+let trajFiveTuple2Str FiveTuples =
+    	itlist (\(When,Node,Value,From,To). \PrintString.
+           	(sprintf "(%s,%s,%s,%d,%d) " ((bool2str 10 When),Node,(bool2str 10 Value),From,To)) ^ PrintString)
+           FiveTuples ""
+;
+
+install_print_function trajFiveTuple2Str ;

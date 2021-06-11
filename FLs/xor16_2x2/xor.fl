@@ -1,0 +1,246 @@
+update_vossrc "DYNAMIC-ORDERING" "FALSE";
+let ckt = load_exe "XORMultiPortMemory16.exe";
+load "../trajEval.fl";
+load "../tools.fl";
+
+let M = 2;          //write port number
+let N = 2;          //read port number
+let Addr = 4;       //address size
+let Depth = 2**4;   //memory depth
+let Width=8;        //data size
+
+//write memory definition
+//k    : k-th write port(0<= k < m)
+//i    : i-th block of (m-1) feedback-write-mem-blocks(0<= i < m-1)
+//adr  : write address
+//m    : total write port number
+//n    : total read port number
+//width: data size
+let MemoryW k i adr m n width= map (\a. "Memory" ^ ((k*(m-1)+i=0) => "" | ("_"^(int2str (k*(m-1)+i))))
+                                        ^".mem<" ^ (int2str adr) ^ "><" ^ (int2str a) ^ ">") (0 upto (width-1))
+;
+
+let memW k adr m n width = map (\a. bvariable ("memW<" ^ (int2str k) 
+                                 ^"><" ^ (int2str adr) ^ "><" ^ (int2str a) ^ ">")) (0 upto (width-1))
+;
+
+
+//read memory definition
+//k    : k-th write port(0<= k < m)
+//j    : j-th read port / j-th block of n read-mem-blocks of a write-port(0<= j <n)
+//adr  : read address
+//m    : total write port number
+//n    : total read port number
+//width: data size
+let MemoryR k j adr m n width= map (\a. "Memory_" ^ (int2str (m*(m-1) + k*n + j)) ^ ".mem<" ^ (int2str adr) ^ "><" ^ (int2str a) ^ ">") (0 upto (width-1))
+;
+
+let memR k adr m n width = map (\a. bvariable ("memR<" ^ (int2str k) 
+                                 ^"><" ^ (int2str adr) ^ "><" ^ (int2str a) ^ ">")) (0 upto (width-1))
+;
+//write enable
+let we i = "io_wrEna_" ^ (int2str i);
+
+let wrEna k =
+    let terms = map (\i. (i=k)=> Is1 ("io_wrEna_" ^ (int2str i)) | Is0 ("io_wrEna_" ^ (int2str i))) (0 upto (M-1)) 
+    in
+    TAndList terms
+;
+
+let nwrEnaAll =  TAndList (map (\i. Is0 ("io_wrEna_" ^ (int2str i))) (0 upto (M-1))) ;
+
+let wrEnaAll =  TAndList (map (\i. Is1 ("io_wrEna_" ^ (int2str i))) (0 upto (M-1))) ;
+
+//nodes
+let wraddr i = map (\j. "io_wrAddr_"^(int2str i) ^ "<" ^ (int2str j) ^ ">") (0 upto (Addr-1)); //write on write-port i
+let rdaddr i = map (\j. "io_rdAddr_"^(int2str i) ^ "<" ^ (int2str j) ^ ">") (0 upto (Addr-1)); //read on read-port i
+let wrdata i = map (\j. "io_wrData_"^(int2str i) ^ "<" ^ (int2str j) ^ ">") (0 upto (Width-1));
+let rddata i = map (\j. "io_rdData_"^(int2str i) ^ "<" ^ (int2str j) ^ ">") (0 upto (Width-1));
+let we i = "io_wrEna_"^(int2str i);//write enable on port i
+
+//symbolic constants
+let ain i = map (\j. bvariable ("ain*" ^ (int2str i) ^ "*" ^ (int2str j) ^ "*")) (0 upto (Addr-1)); 
+let ains = map (\i. (ain i)) (0 upto (M-1));
+let din i = map (\j. bvariable ("din*" ^ (int2str i) ^ "*" ^ (int2str j) ^ "*")) (0 upto (Width-1));
+let dins = map (\i. (din i)) (0 upto (M-1));
+let aout i = map (\j. bvariable ("aout*" ^ (int2str i) ^ "*" ^ (int2str j) ^ "*")) (0 upto (Addr-1));
+let aouts = map (\i. (aout i)) (0 upto (N-1));
+let dout i = map (\j. bvariable ("dout*" ^ (int2str i) ^ "*" ^ (int2str j) ^ "*")) (0 upto (Width-1));
+let douts = map (\i. (dout i)) (0 upto (N-1));
+let wev i = bvariable ("wev*" ^ (int2str i));
+let memwUnit i j a = MemoryW i j a M N Width;
+let memwV i a = memW i a M N Width;
+let memrUnit i j a = MemoryR i j a M N Width;
+let memrV i a = memR i a M N Width;
+
+//basic assertions
+let clk2 = TAndList [Is0 "CLK", Next (Is1 "CLK")];
+let clk4 = TAndList [Is0 "CLK", Next (Is1 "CLK"), Next (Next (Is0 "CLK")), Next (Next (Next (Is1 "CLK")))];
+let rst = Is1 "reset";
+let nrst = Is0 "reset";
+let memwAntAssert adr = TAndList (flat (map (\i. 
+                                ( map (\j. (memwUnit i j adr) bvAre (memwV i adr)) (0 upto (M-2)))
+                            ) (0 upto (M-1))))
+;
+let memrAntAssert adr = TAndList (flat (map (\i. 
+                                ( map (\j. (memrUnit i j adr) bvAre (memrV i adr)) (0 upto (N-1)))
+                            ) (0 upto (M-1))))
+;
+let memwConsAssert adr  = TAndList (flat (map (\i. 
+                                ( map (\j. (memwUnit i j adr) bvAre (memwV i adr)) (0 upto (M-2)))
+                            ) (0 upto (M-1))))
+;
+let memrConsAssert adr = TAndList (flat (map (\i. 
+                                ( map (\j. (memrUnit i j adr) bvAre (memrV i adr)) (0 upto (N-1)))
+                            ) (0 upto (M-1))))
+;
+let memwAntAssertNoK k adr = (TAndList (flat (map (\i. 
+                                ( map (\j. (memwUnit i j adr) bvAre (memwV i adr)) (0 upto (M-2)))
+                            ) (filter (\m. m!=k) (0 upto (M-1))))))
+;
+let memrAntAssertNoK k adr = (TAndList (flat (map (\i. 
+                                ( map (\j. (memrUnit i j adr) bvAre (memrV i adr)) (0 upto (N-1)))
+                            ) (filter (\i. i!=k) (0 upto (M-1))))))
+;
+// get all feedback to writePort k, defaultly retrieve other ports' first (0) feedback block
+// 0 <= k < M, 0 <= fi < M-1
+let feedbackw k fi adr = XORs (map (\wp. memwV wp adr) (filter (\i. i!=k) (0 upto (M-1))));
+let memwConsAssertOnK K adr=Next (TAndList (map (\fbi. (memwUnit K fbi adr) bvAre (XORs [feedbackw K fbi adr, din K ])) (0 upto (M-2))));
+// 0 <= k < M, 0 <= n < N
+let feedbackr k n adr = XORs (map (\p. memrV p adr) (filter (\i. i!=k) (0 upto (M-1))));
+let memrConsAssertOnK K adr =Next (TAndList (map (\n. (memrUnit K n adr) bvAre (XORs [feedbackr K n adr, din K])) (0 upto (N-1))));
+
+
+//edge0->1 writing action
+let assert1 nonce =
+    //stats
+    let adrCases = (extract M (0 upto (Depth-1))) in
+    let casesLen = length adrCases in
+    //symbolic indexing variables
+    let ider = map (\i. bvariable ("ider" ^ (int2str i))) (0 upto (log2 (casesLen))) in
+    //antecedent and consequent
+    let memAnt = TAndList (
+        map2 
+        (\n.\as. Guard (ider indexIs n) (TAndList (flat (map2 (\i.\a. [(wraddr i) nodeIs a, memwAntAssert a, memrAntAssert a]) (0 upto (M-1)) as))))
+        (0 upto (casesLen-1)) adrCases
+    )
+    in
+    let wrdatAnt = TAndList (map (\i. (wrdata i) bvAre (din i)) (0 upto (M-1))) in
+    let memCons = TAndList (
+        map2 
+        (\n.\as. Guard (ider indexIs n) (TAndList (flat (map2 (\i.\a. [memwConsAssertOnK i a, memrConsAssertOnK i a]) (0 upto (M-1)) as))))
+        (0 upto (casesLen-1)) adrCases
+    )
+    in
+    let ant_t = TAndList [memAnt, Next (memAnt), Next (Next (memAnt)),
+                        wrdatAnt, Next (wrdatAnt), Next (Next (wrdatAnt)),
+                        wrEnaAll, Next (wrEnaAll), Next (Next (wrEnaAll)),
+                        nrst, Next (nrst), Next (Next (nrst)),
+                        clk4] 
+    in
+    let cons_t = Next (Next (memCons)) in
+    let ant = trajForm2FiveTuples ant_t in
+    let cons = trajForm2FiveTuples cons_t in
+    //constraints on write and read block with same write-port
+    let cnstr = ands(
+            flat (map (\wp. 
+                        (map (\a. 
+                                bEqs (memwV wp a) (memrV wp a)) 
+                        (0 upto (Depth-1))))
+                    (0 upto (M-1))
+                )
+        )
+    in
+    uSTE "" ckt [] ant cons [] [cnstr] => T | F 
+;
+
+//edge1->1 holding action
+let assert2 nonce =
+    //stats
+    let adrCases = (extract M (0 upto (Depth-1))) in
+    let casesLen = length adrCases in
+    //symbolic indexing variables
+    let ider = map (\i. bvariable ("ider" ^ (int2str i))) (0 upto (log2 (casesLen))) in
+    //antecedent and consequent
+    let memAnt = TAndList (
+        map2 
+        (\n.\as. Guard (ider indexIs n) (TAndList (flat (map2 (\i.\a. [memwAntAssert a, memrAntAssert a]) (0 upto (M-1)) as))))
+        (0 upto (casesLen-1)) adrCases
+    )
+    in
+    let nwrAadr = TAndList (map (\i. TAndList [Isb (wev i) (we i), (wraddr i) bvAre (ain i)]) (0 upto (M-1))) in
+    let memCons = TAndList (
+        map2 
+        (\n.\as. Guard (ider indexIs n) (TAndList (flat (map2 (\i.\a. [memwConsAssert a, memrConsAssert a]) (0 upto (M-1)) as))))
+        (0 upto (casesLen-1)) adrCases
+    )
+    in
+    let ant_t = TAndList [memAnt,
+                        nrst, Next (nrst),
+                        nwrAadr, Next(nwrAadr),
+                        clk2] 
+    in
+    let cons_t = Next (memCons) in
+    let ant = trajForm2FiveTuples ant_t in
+    let cons = trajForm2FiveTuples cons_t in
+    //constraints on write and read block with same write-port
+    let cnstr = ands(
+            map2 (\n.\as.
+            (imply (ider indexIs n) (ands (map2 (\i.\a. (bNOT (wev i)) bOR  (ands (map (\e. bNOT ((ain i) indexIs e)) as))) (0 upto (M-1)) as))))
+            (0 upto (casesLen-1)) adrCases
+        )
+    in
+    uSTE "" ckt [] ant cons [] [cnstr] => T | F 
+;
+
+let assert3 nonce =
+    //stats
+    let adrCases = (extract M (0 upto (Depth-1))) in
+    let casesLen = length adrCases in
+    //symbolic indexing variables
+    let ider = map (\i. bvariable ("ider" ^ (int2str i))) (0 upto (log2 (casesLen))) in
+    //antecedent and consequent
+    let memAnt = TAndList (
+        map2 
+        (\n.\as. Guard (ider indexIs n) (TAndList (map (\a. memrAntAssert a) as)))
+        (0 upto (casesLen-1)) adrCases
+    )
+    in
+    let radrAnt = TAndList (map (\j. (rdaddr j) bvAre (aout j)) (0 upto (N-1)))  in
+    let rdatCons =TAndList (
+        map2 
+        (\n.\as. Guard (ider indexIs n) (TAndList (
+                map
+                (\j. TAndList (map2 (\i.\a. Guard ((aout j) indexIs a) ((rddata j) bvAre (din i))) (0 upto (M-1)) as))
+                (0 upto (N-1))
+        )))
+        (0 upto (casesLen-1)) adrCases
+    )
+    in
+    let ant_t = TAndList [
+        memAnt, Next (memAnt),
+        radrAnt, Next (radrAnt),
+        nwrEnaAll, Next (nwrEnaAll),
+        nrst, Next (nrst),
+        clk2
+    ]
+    in
+    let cons_t = Next (rdatCons) in
+    //constraints on xor of all write-ports with same read-port position
+    let xorsOfR adr = XORs (map (\wp. memrV wp adr) (0 upto (M-1))) in
+    let cnstrOnMemr = ands ( 
+        map2 
+        (\n.\as. imply (ider indexIs n) (ands (flat (map2 (\i.\a. [bEqs (xorsOfR a) (din i)]) (0 upto (M-1)) as))))
+        (0 upto (casesLen-1)) adrCases
+    )
+    in
+    let ant = trajForm2FiveTuples ant_t in
+    let cons = trajForm2FiveTuples cons_t in
+    bdd_reorder 5
+    fseq
+    uSTE "" ckt [] ant cons [] [cnstrOnMemr] => T | F 
+;
+
+(assert1 0) AND (assert2 0) AND (assert3 0);
+quit;
+

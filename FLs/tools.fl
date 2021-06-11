@@ -1,0 +1,91 @@
+//log_2 function (ceiling)
+let log2 n = 
+    let res = ref 1 in
+    letrec helper n = 
+        (2**(deref res) >= n) => (deref res)
+        | res := (deref res) + 1 fseq helper n
+    in
+    helper n
+;
+//Generate the conbinations of K distinct objects chosen from the N elemnts of a list
+letrec extract k lst=
+    k<=0 => [[]] 
+    | lst=[] => [] 
+    | (
+        let h = hd lst in
+        let tl = tl lst in
+        let with_h = map (\l. h:l) (extract (k-1) tl) in
+        let without_h = extract k tl in
+        with_h@without_h
+    )
+;
+
+//factorial from f to t
+let factor f t =
+    itlist (\i.\r. i*r) (f upto t) 1;   
+;
+
+//map function on two list
+let map2 fun tabA tabB = map (\(a,b). (fun a b)) (zip tabA tabB);
+
+//universal STE
+let uSTE option model weak ant cons trace_list constraints =
+    constraints = [] => (
+       STE option model weak ant cons trace_list
+    ) | (
+        let all_cnstr = itlist (\c.\pre. c bAND pre) constraints bT in
+        let cnstr_bdd = hd (bexpr2bdd [] [all_cnstr]) in
+        cSTE ([], [cnstr_bdd]) option model weak ant cons trace_list
+    )
+;
+
+//equation of 2 bdd expressions
+let bEq bea beb =
+    ((bNOT bea) bOR beb) bAND ((bNOT beb) bOR bea)
+;
+//equation of 2 bdd expression lists
+let bEqs belista belistb =
+   itlist (\e.\r. e bAND r) (map2 (\a.\b. ((bNOT a) bOR b) bAND ((bNOT b) bOR a)) belista belistb) bT
+;
+
+//not equalty of two bexpression
+let bNeq bea beb = bNOT (bEq bea beb);
+
+//not equalty of two bexpression list
+let bNeqs belista belistb = bNOT (bEqs belista belistb);
+
+//conjunction of list of bexpression
+let ands termList = itlist (\t.\pre. t bAND pre) termList bT; 
+
+//disconjunction of list of bexpression
+let ors termList = itlist (\t.\pre. t bOR pre) termList bT; 
+
+//implication of two expression
+let imply e1 e2 = (bNOT e1) bOR e2;
+
+//xor2 of two bexpr vectors
+let xor2 [] bv2 = bv2
+    /\ xor2 bv1 [] = bv1
+    /\ xor2 bv1 bv2 =            
+            map2 (\i.\j. i bXOR j) bv1 bv2
+;
+
+//XOR function of list of bexpr vectors with same length
+let XORs bexprVecs = 
+    letrec XORs_h [] = []
+        /\ XORs_h [x] = [x]
+        /\ XORs_h bvs =
+            XORs_h ((xor2 (hd bvs) (hd (tl bvs))):(tl (tl bvs)))
+    in
+    let res = (XORs_h bexprVecs) in
+    res=[] => error "Empty Arguments" | (hd res)
+;
+//let bvs = [[bvariable "x1",bvariable "x2" ], [bvariable "y1", bvariable "y2"], [bvariable "z1", bvariable "z2"], [bvariable "w1", bvariable "w2"]];
+//XORs bvs;
+
+
+//bexpression list to integer
+let bv2int bv=
+    let size = length bv in
+    itlist (\i.\r. (hd (bexpr2bdd [] [(el (i+1) bv)]))==T => (2**i)+r | r) (0 upto (size-1)) 0
+;
