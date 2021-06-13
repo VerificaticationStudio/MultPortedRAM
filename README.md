@@ -25,7 +25,7 @@ Use this equation to get the design: allocate a group of memory blocks for each 
 
 The figure shows the design of 2 read ports and 2 write ports. And it can be summarized that for the multi-ported memory with  m  write ports and  n  read ports, the number of memory blocks required is 
 
-<img src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/c3d40975-004c-4631-8130-eaf92ce2152b/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210613%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210613T085208Z&X-Amz-Expires=86400&X-Amz-Signature=c8e8c5bd5cf5717defbc67d0535773114d4cfc1c50cbd9aa912aec30465a160a&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22" style="zoom: 67%;" />
+<div align=center><img src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/c3d40975-004c-4631-8130-eaf92ce2152b/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210613%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210613T085208Z&X-Amz-Expires=86400&X-Amz-Signature=c8e8c5bd5cf5717defbc67d0535773114d4cfc1c50cbd9aa912aec30465a160a&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22" height="20" /></div>
 
 There is no need to rely on registers. Multi-ported memory can be implemented only based on block memory. However, this solution increases the redundancy of block memory. On the write side, for each group need to be redundant to read other write groups and then perform XOR operations. When the write port increases, the increase in the amount of block memory is quadratic.
 
