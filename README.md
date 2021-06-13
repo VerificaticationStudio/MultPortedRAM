@@ -15,11 +15,13 @@
 
 The design and implementation of multi-ported memory based on XOR is mainly based on an equation of XOR operation, that is, the result obtained by XORing the same number twice is the same as the original one, namely:
 
-<div align=center><img src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/8dcf078d-35cd-4052-97b8-9c3b8dd948d5/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210613%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210613T084455Z&X-Amz-Expires=86400&X-Amz-Signature=19ba11249457b3dd023f7269dbf7c6a89fe0988473c213686bf8a1573774d946&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22" height="35" /></div>
+<div align=center><img src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/e94267c3-e416-4884-afb3-d8033441a50b/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210613%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210613T154752Z&X-Amz-Expires=86400&X-Amz-Signature=aea17fd216ee6f27adce0bb8b2f26f1ff71ab2b37d813c35a67837d313e05f1f&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22" height="30" /></div>
 
 Use this equation to get the design: allocate a group of memory blocks for each write port, and you need to update the data of the memory blocks in the same group at the same time when writing, but the updated value is the written data and the corresponding in all other memory groups. The result obtained by the exclusive OR of the address data; when reading, you only need to perform the exclusive OR operation on all the data corresponding to the read address in all memory groups to get the actual data that needs the address. The design of 2 write and 2 read ports is shown in this picture:
 
-![](https://s3.us-west-2.amazonaws.com/secure.notion-static.com/76059e9a-f2b9-49c8-9553-79068a6ed7d4/pic3.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210613%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210613T084950Z&X-Amz-Expires=86400&X-Amz-Signature=7bd9b80262f34dac178f9e89fe127b33f0d480b05318fd8e8b8582b6a5cf7744&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22pic3.png%22)
+<div align=center><img src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/76059e9a-f2b9-49c8-9553-79068a6ed7d4/pic3.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210613%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210613T084950Z&X-Amz-Expires=86400&X-Amz-Signature=7bd9b80262f34dac178f9e89fe127b33f0d480b05318fd8e8b8582b6a5cf7744&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22pic3.png%22" height="400" /></div>
+
+
 
 The figure shows the design of 2 read ports and 2 write ports. And it can be summarized that for the multi-ported memory with  m  write ports and  n  read ports, the number of memory blocks required is 
 
