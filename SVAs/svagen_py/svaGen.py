@@ -216,4 +216,3 @@ def genILVTSva(m: int, n: int, addr: int, data: int):
 if __name__ == '__main__':
     genLVTSva(2, 2, 5, 31)
     genXORSva(2, 2, 5, 31)
-    genILVTSva(2, 2, 5, 31)

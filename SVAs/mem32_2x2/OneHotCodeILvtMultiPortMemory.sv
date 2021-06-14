@@ -1,19 +1,19 @@
 module Memory(
   input        clock,
-  input  [3:0] io_rdAddr,
+  input  [4:0] io_rdAddr,
   output [8:0] io_rdData,
   input        io_wrEna,
   input  [8:0] io_wrData,
-  input  [3:0] io_wrAddr
+  input  [4:0] io_wrAddr
 );
 `ifdef RANDOMIZE_MEM_INIT
   reg [31:0] _RAND_0;
 `endif // RANDOMIZE_MEM_INIT
-  reg [8:0] mem [0:15]; // @[Memory.scala 16:16]
+  reg [8:0] mem [0:31]; // @[Memory.scala 16:16]
   wire [8:0] mem_io_rdData_MPORT_data; // @[Memory.scala 16:16]
-  wire [3:0] mem_io_rdData_MPORT_addr; // @[Memory.scala 16:16]
+  wire [4:0] mem_io_rdData_MPORT_addr; // @[Memory.scala 16:16]
   wire [8:0] mem_MPORT_data; // @[Memory.scala 16:16]
-  wire [3:0] mem_MPORT_addr; // @[Memory.scala 16:16]
+  wire [4:0] mem_MPORT_addr; // @[Memory.scala 16:16]
   wire  mem_MPORT_mask; // @[Memory.scala 16:16]
   wire  mem_MPORT_en; // @[Memory.scala 16:16]
   assign mem_io_rdData_MPORT_addr = io_rdAddr;
@@ -65,7 +65,7 @@ initial begin
     `endif
 `ifdef RANDOMIZE_MEM_INIT
   _RAND_0 = {1{`RANDOM}};
-  for (initvar = 0; initvar < 16; initvar = initvar+1)
+  for (initvar = 0; initvar < 32; initvar = initvar+1)
     mem[initvar] = _RAND_0[8:0];
 `endif // RANDOMIZE_MEM_INIT
   `endif // RANDOMIZE
@@ -78,53 +78,53 @@ endmodule
 module OneHotCodeILvtMultiPortMemory(
   input        clock,
   input        reset,
-  input  [3:0] io_wrAddr_0,
-  input  [3:0] io_wrAddr_1,
+  input  [4:0] io_wrAddr_0,
+  input  [4:0] io_wrAddr_1,
   input  [7:0] io_wrData_0,
   input  [7:0] io_wrData_1,
   input        io_wrEna_0,
   input        io_wrEna_1,
-  input  [3:0] io_rdAddr_0,
-  input  [3:0] io_rdAddr_1,
+  input  [4:0] io_rdAddr_0,
+  input  [4:0] io_rdAddr_1,
   output [7:0] io_rdData_0,
   output [7:0] io_rdData_1
 );
   wire  Memory_clock; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
-  wire [3:0] Memory_io_rdAddr; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
+  wire [4:0] Memory_io_rdAddr; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
   wire [8:0] Memory_io_rdData; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
   wire  Memory_io_wrEna; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
   wire [8:0] Memory_io_wrData; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
-  wire [3:0] Memory_io_wrAddr; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
+  wire [4:0] Memory_io_wrAddr; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
   wire  Memory_1_clock; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
-  wire [3:0] Memory_1_io_rdAddr; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
+  wire [4:0] Memory_1_io_rdAddr; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
   wire [8:0] Memory_1_io_rdData; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
   wire  Memory_1_io_wrEna; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
   wire [8:0] Memory_1_io_wrData; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
-  wire [3:0] Memory_1_io_wrAddr; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
+  wire [4:0] Memory_1_io_wrAddr; // @[OneHotCodeILvtMultiPortMemory.scala 20:11]
   wire  Memory_2_clock; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
-  wire [3:0] Memory_2_io_rdAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
+  wire [4:0] Memory_2_io_rdAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire [8:0] Memory_2_io_rdData; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire  Memory_2_io_wrEna; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire [8:0] Memory_2_io_wrData; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
-  wire [3:0] Memory_2_io_wrAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
+  wire [4:0] Memory_2_io_wrAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire  Memory_3_clock; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
-  wire [3:0] Memory_3_io_rdAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
+  wire [4:0] Memory_3_io_rdAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire [8:0] Memory_3_io_rdData; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire  Memory_3_io_wrEna; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire [8:0] Memory_3_io_wrData; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
-  wire [3:0] Memory_3_io_wrAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
+  wire [4:0] Memory_3_io_wrAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire  Memory_4_clock; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
-  wire [3:0] Memory_4_io_rdAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
+  wire [4:0] Memory_4_io_rdAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire [8:0] Memory_4_io_rdData; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire  Memory_4_io_wrEna; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire [8:0] Memory_4_io_wrData; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
-  wire [3:0] Memory_4_io_wrAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
+  wire [4:0] Memory_4_io_wrAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire  Memory_5_clock; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
-  wire [3:0] Memory_5_io_rdAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
+  wire [4:0] Memory_5_io_rdAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire [8:0] Memory_5_io_rdData; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire  Memory_5_io_wrEna; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire [8:0] Memory_5_io_wrData; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
-  wire [3:0] Memory_5_io_wrAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
+  wire [4:0] Memory_5_io_wrAddr; // @[OneHotCodeILvtMultiPortMemory.scala 23:11]
   wire  tmp_0 = Memory_1_io_rdData[0]; // @[OneHotCodeILvtMultiPortMemory.scala 38:54]
   wire [8:0] _wrIn_0_T = {io_wrData_0, 1'h0}; // @[OneHotCodeILvtMultiPortMemory.scala 41:30]
   wire [8:0] _GEN_4 = {{8'd0}, tmp_0}; // @[OneHotCodeILvtMultiPortMemory.scala 41:51]
@@ -217,6 +217,7 @@ module OneHotCodeILvtMultiPortMemory(
   assign Memory_5_io_wrEna = io_wrEna_1; // @[OneHotCodeILvtMultiPortMemory.scala 55:32]
   assign Memory_5_io_wrData = _wrIn_1_T + _GEN_5; // @[OneHotCodeILvtMultiPortMemory.scala 41:51]
   assign Memory_5_io_wrAddr = io_wrAddr_1; // @[OneHotCodeILvtMultiPortMemory.scala 56:33]
+
 
   integer addr = 4'h5;
   integer data = 8'h1f;
