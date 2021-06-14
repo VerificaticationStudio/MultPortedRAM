@@ -7,7 +7,7 @@
 - README : Read this first!
 - ChiselCode/ : Three kinds of multi-ported ram implemented by Chisel : LVT-based, XOR-based, I-LVT-based. 
 - FLs/ : GSTE model checking on multiport memories using FORTE.
-- SVAs/ :
+- SVAs/ : the SVA code described the properties of the multi-ported memory, and it can be check by SymbiYosys.
 
 ## Multi-ported memory modules
 
