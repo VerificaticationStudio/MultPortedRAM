@@ -15,17 +15,17 @@
 
 The design and implementation of multi-ported memory based on XOR is mainly based on an equation of XOR operation, that is, the result obtained by XORing the same number twice is the same as the original one, namely:
 
-<div align=center><img src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/e94267c3-e416-4884-afb3-d8033441a50b/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210613%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210613T154752Z&X-Amz-Expires=86400&X-Amz-Signature=aea17fd216ee6f27adce0bb8b2f26f1ff71ab2b37d813c35a67837d313e05f1f&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22" height="20" /></div>
+<div align=center><img src="https://raw.githubusercontent.com/mufanx/PictureHost/main/multi-ported_memory/abb.png" height="40" /></div>
 
 Use this equation to get the design: allocate a group of memory blocks for each write port, and you need to update the data of the memory blocks in the same group at the same time when writing, but the updated value is the written data and the wucorresponding in all other memory groups. The result obtained by the exclusive OR of the address data; when reading, you only need to perform the exclusive OR operation on all the data corresponding to the read address in all memory groups to get the actual data that needs the address. The design of 2 write and 2 read ports is shown in this picture:
 
-<div align=center><img src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/76059e9a-f2b9-49c8-9553-79068a6ed7d4/pic3.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210614%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210614T093838Z&X-Amz-Expires=86400&X-Amz-Signature=a1f003879de4098a54fca904a2607c9670b6bdfc2e8492a992ff303f0f6750b1&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22pic3.png%22" height="400" /></div>
+<div align=center><img src="https://raw.githubusercontent.com/mufanx/PictureHost/main/multi-ported_memory/xor.png" height="400" /></div>
 
 
 
 The figure shows the design of 2 read ports and 2 write ports. And it can be summarized that for the multi-ported memory with  m  write ports and  n  read ports, the number of memory blocks required is 
 
-<div align=center><img src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/c3d40975-004c-4631-8130-eaf92ce2152b/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210614%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210614T093911Z&X-Amz-Expires=86400&X-Amz-Signature=72cc4cca3878bac3ee914db8cd9dcc947f4e39d77ff348c103c904fbfef87841&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22" height="25" /></div>
+<div align=center><img src="https://github.com/mufanx/PictureHost/blob/main/multi-ported_memory/mxn.png?raw=true" height="25" /></div>
 
 There is no need to rely on registers. Multi-ported memory can be implemented only based on block memory. However, this solution increases the redundancy of block memory. On the write side, for each group need to be redundant to read other write groups and then perform XOR operations. When the write port increases, the increase in the amount of block memory is quadratic.
 
@@ -37,7 +37,7 @@ The I-LVT multi-ported memory design scheme is similar to the LVT scheme. All th
 
 The design of multi-ported memory based on I-LVT is shown here:
 
-<div align=center><img src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/c0cd3a51-93fa-4905-94c0-4f4c4517fc4d/pic4.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210614%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210614T093934Z&X-Amz-Expires=86400&X-Amz-Signature=d2aa7df7b993aedf1be1bbe97512078800d7eb8eb800db11ddbdf0707807f3c7&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22pic4.png%22" height="450" /></div>
+<div align=center><img src="https://github.com/mufanx/PictureHost/blob/main/multi-ported_memory/ilvt.png?raw=true" height="450" /></div>
 
 
 
@@ -45,11 +45,11 @@ Among them, BRAM\_WR represents a group of memory, corresponding to a group of m
 
 It can be seen that in the I-LVT multi-ported memory solution, there will be different specific implementation according to the different design of the modules f_fb and f_out. Note that the XOR-based multi-ported memory implementation is actually a special I-LVT multi-ported memory implementation. Here is the function definition of its f_fb and f_out modules:
 
-<div align=center><img src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/4364e61f-85a2-485f-9101-31f60444213c/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210614%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210614T094014Z&X-Amz-Expires=86400&X-Amz-Signature=b45ff3b9a6d4bef035c97f544287df4b8429e225d1387fd3400b5757299c631b&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22" height="50" /></div>
+<div align=center><img src="https://github.com/mufanx/PictureHost/blob/main/multi-ported_memory/fxor.png?raw=true" height="50" /></div>
 
 In this research, a specific I-LVT multi-ported memory solution is also implemented. The definitions of  f_fb and  f_out  are given below:
 
-<div align=center><img src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/19319d88-1be9-48a4-9b50-1cc493dad7e5/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210614%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210614T094043Z&X-Amz-Expires=86400&X-Amz-Signature=bb8aca465d58460ac304e1c1b1951c385ec2f98fac43120abd6753ed1961c6e9&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22" height="140" /></div>
+<div align=center><img src="https://github.com/mufanx/PictureHost/blob/main/multi-ported_memory/filvt.png?raw=true" height="140" /></div>
 
 It can be obtained by the function definition. In this multi-ported memory implementation based on one-hot encoding, the data written into the memory needs to be added with an additional m-1​ flag to store location information; when reading data, each read port needs For  k belong [0, m) , calculate the results of  f_(out, k)  respectively. If the flag information in the result is all 1, the latest update data corresponding to the address in the memory is obtained.
 
