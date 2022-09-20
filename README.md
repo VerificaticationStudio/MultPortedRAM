@@ -1,6 +1,6 @@
 # Designing and Verifying multi-ported SRAM-based Memories
 
-
+paper: https://ieeexplore.ieee.org/abstract/document/9763801
 
 ## Files and directories in this package
 
